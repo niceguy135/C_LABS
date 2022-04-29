@@ -1,0 +1,6 @@
+1;Danov Kosta;2002;0
+2;Barsuk Sergei;2000;0
+3;Prigoshina Natalia;1999;1
+4;Aaa Bbb;2004;1
+5;dddgffg;23232;0
+9;0
