@@ -48,119 +48,111 @@
 **
 ****************************************************************************/
 
-#include "renderarea.h"
+#ifndef WINDOW_H
+#define WINDOW_H
 
-#include <QPainter>
-#include <QPainterPath>
+#include <QWidget>
+#include <memory.h>
+#include <QMouseEvent>
+#include <iostream>
+#include <QPen>
 
+QT_BEGIN_NAMESPACE
+class QCheckBox;
+class QComboBox;
+class QLabel;
+class QSpinBox;
+class QPushButton;
+QT_END_NAMESPACE
+class RenderArea;
 
-RenderArea::RenderArea(QWidget *parent)
-    : QWidget(parent)
+//! [0]
+class Window : public QWidget
 {
-    antialiased = false;
-    transformed = false;
-    pixmap.load(":/images/qt-logo.png");
+    Q_OBJECT
 
-    setBackgroundRole(QPalette::Base);
-    setAutoFillBackground(true);
-}
+public:
+    Window();
 
-QSize RenderArea::minimumSizeHint() const
-{
-    return QSize(300, 300);
-}
+private slots:
+    void penChanged();
+    void brushChanged();
 
+    //реализация моих методов
+    void plotRectFun();
 
-QSize RenderArea::sizeHint() const
-{
-    return QSize(400, 200);
-}
+    void plotCircleFun();
 
-void RenderArea::setPen(const QPen &pen)
-{
-    this->pen = pen;
-    update();
-}
+    void plotTrigFun();
 
+private:
+    RenderArea *renderArea;
+    QLabel *shapeLabel;
+    QLabel *penWidthLabel;
+    QLabel *penStyleLabel;
+    QLabel *penCapLabel;
+    QLabel *penJoinLabel;
+    QLabel *brushStyleLabel;
+    QComboBox *shapeComboBox;
+    QSpinBox *penWidthSpinBox;
+    QComboBox *penStyleComboBox;
+    QComboBox *penCapComboBox;
+    QComboBox *penJoinComboBox;
+    QComboBox *brushStyleComboBox;
+    QCheckBox *antialiasingCheckBox;
+    QCheckBox *transformationsCheckBox;
+    //мои свойства
 
-void RenderArea::setBrush(const QBrush &brush)
-{
-    this->brush = brush;
-    update();
+    //прямоугольники
+    QSpinBox *leftUpPointX;
+    QSpinBox *leftUpPointY;
+    QLabel *leftUpPointXLabel;
+    QLabel *leftUpPointYLabel;
+    QSpinBox *weights;
+    QSpinBox *heights;
+    QLabel *weightLabel;
+    QLabel *heightLabel;
+    QPoint leftUpPoint;
+    float width;
+    float height;
+    QPushButton *plotRect;
+    QLabel *rectLabel;
 
-}
+    //круги
+    QSpinBox *circleCenterX;
+    QSpinBox *circleCenterY;
+    QLabel *circleCenterXLabel;
+    QLabel *circleCenterYLabel;
+    QSpinBox *circleRadius;
+    QLabel *circleRadiusLabel;
+    QPoint circleCenter;
+    float radius;
+    QPushButton *plotCircle;
+    QLabel *circleLabel;
 
-
-void RenderArea::setAntialiased(bool antialiased)
-{
-    this->antialiased = antialiased;
-    update();
-}
-
-
-void RenderArea::setTransformed(bool transformed)
-{
-    this->transformed = transformed;
-    update();
-}
-
-
-
-void RenderArea::paintEvent(QPaintEvent * /* event */)
-{   
-    QPainterPath path;
-    path.moveTo(20, 80);
-    path.lineTo(20, 30);
-    path.cubicTo(80, 0, 50, 50, 80, 80);
-
-
-    QPainter painter(this);
-    painter.setPen(pen);
-    painter.setBrush(brush);
-    if (antialiased)
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-            painter.save();
-
-
-        for(auto fig : Figs) {
-            switch (fig->getShape()) {
-
-                case Figures::Trig :
-                {
-                    Trig* curFig = (Trig*)fig;
-                    QPointF points[3] = {
-                        curFig->upPoint,
-                        curFig->leftPoint,
-                        curFig->rightPoint,
-                    };
-                    painter.drawPolygon(points,3);
-                    break;
-                }
-
-                case Figures::Square:
-                {
-                    Square* curFig = (Square*)fig;
-                    painter.drawRect(curFig->leftUpPoint.x(),curFig->leftUpPoint.y(),curFig->wigth,curFig->height);
-                    break;
-                }
-
-                case Figures::Circle:
-                {
-                    Circle* curFig = (Circle*)fig;
-                    painter.drawEllipse(curFig->circlePoint,curFig->radius,curFig->radius);
-                    break;
-                }
-            }
-
-            painter.restore();
-        }
+    //треугольники
+    QSpinBox *upPointX;
+    QSpinBox *upPointY;
+    QSpinBox *leftPointX;
+    QSpinBox *leftPointY;
+    QSpinBox *rightPointX;
+    QSpinBox *rightPointY;
+    QLabel *upPointXLabel;
+    QLabel *upPointYLabel;
+    QLabel *leftPointXLabel;
+    QLabel *leftPointYLabel;
+    QLabel *rightPointXLabel;
+    QLabel *rightPointYLabel;
+    QPoint upPoint;
+    QPoint leftPoint;
+    QPoint rightPoint;
+    QPushButton *plotTrig;
+    QLabel *trigLabel;
 
 
+    QPushButton *clear;
+    QPen curPen;
+};
+//! [0]
 
-    painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setPen(palette().dark().color());
-    painter.setBrush(Qt::NoBrush);
-    painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
-}
-
+#endif // WINDOW_H

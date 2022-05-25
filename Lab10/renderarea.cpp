@@ -57,6 +57,7 @@
 RenderArea::RenderArea(QWidget *parent)
     : QWidget(parent)
 {
+    setMouseTracking(true);
     antialiased = false;
     transformed = false;
     pixmap.load(":/images/qt-logo.png");
@@ -79,7 +80,6 @@ QSize RenderArea::sizeHint() const
 void RenderArea::setPen(const QPen &pen)
 {
     this->pen = pen;
-    update();
 }
 
 
@@ -113,9 +113,10 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
     path.lineTo(20, 30);
     path.cubicTo(80, 0, 50, 50, 80, 80);
 
+    const QRect form = QRect(250, 150, 300, 200);
+
 
     QPainter painter(this);
-    painter.setPen(pen);
     painter.setBrush(brush);
     if (antialiased)
         painter.setRenderHint(QPainter::Antialiasing, true);
@@ -123,12 +124,13 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
             painter.save();
 
 
-        for(auto fig : Figs) {
-            switch (fig->getShape()) {
+        for(auto fig = Figs.rbegin(); fig != Figs.rend(); fig++) {
+            painter.setPen(fig->get()->pen);
+            switch (fig->get()->getShape()) {
 
                 case Figures::Trig :
                 {
-                    Trig* curFig = (Trig*)fig;
+                    Trig* curFig = (Trig*)fig->get();
                     QPointF points[3] = {
                         curFig->upPoint,
                         curFig->leftPoint,
@@ -140,14 +142,14 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 
                 case Figures::Square:
                 {
-                    Square* curFig = (Square*)fig;
+                    Square* curFig = (Square*)fig->get();
                     painter.drawRect(curFig->leftUpPoint.x(),curFig->leftUpPoint.y(),curFig->wigth,curFig->height);
                     break;
                 }
 
                 case Figures::Circle:
                 {
-                    Circle* curFig = (Circle*)fig;
+                    Circle* curFig = (Circle*)fig->get();
                     painter.drawEllipse(curFig->circlePoint,curFig->radius,curFig->radius);
                     break;
                 }
@@ -156,7 +158,10 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
             painter.restore();
         }
 
-
+    if(figureStatus != "") {
+        painter.setPen(pen);
+        painter.drawText(form,Qt::AlignCenter, figureStatus);
+    }
 
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setPen(palette().dark().color());
@@ -164,3 +169,131 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
     painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
 }
 
+void RenderArea::mouseMoveEvent(QMouseEvent *event) {
+    QPointF position = event->position();
+    bool flag = false;
+
+    for(auto fig = Figs.begin(); fig != Figs.end(); fig++) {
+        if (flag) {
+            switch (fig->get()->getShape()) {
+
+                case Figures::Trig :
+                {
+                    Trig* curFig = (Trig*)fig->get();
+                    curFig->pen = curFig->getOldPen();
+                    break;
+                }
+
+                case Figures::Square:
+                {
+                    Square* curFig = (Square*)fig->get();
+                    curFig->pen = curFig->getOldPen();
+                    break;
+                }
+
+                case Figures::Circle:
+                {
+                    Circle* curFig = (Circle*)fig->get();
+                    curFig->pen = curFig->getOldPen();
+                    break;
+                }
+            }
+        } else {
+            switch (fig->get()->getShape()) {
+
+                case Figures::Trig :
+                {
+                    Trig* curFig = (Trig*)fig->get();
+
+                    if (curFig->inTheFigure(position)) {
+                        curFig->pen = QPen(Qt::red, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+                        update();
+                        flag = true;
+                    } else {
+                        curFig->pen = curFig->getOldPen();
+                        update();
+                    }
+                    break;
+                }
+
+                case Figures::Square:
+                {
+                    Square* curFig = (Square*)fig->get();
+
+                    if (curFig->inTheFigure(position)) {
+                        curFig->pen = QPen(Qt::red, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+                        update();
+                        flag = true;
+                    } else {
+                        curFig->pen = curFig->getOldPen();
+                        update();
+                    }
+                    break;
+                }
+
+                case Figures::Circle:
+                {
+                Circle* curFig = (Circle*)fig->get();
+
+                if (curFig->inTheFigure(position)) {
+                    curFig->pen = QPen(Qt::red, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+                    update();
+                    flag = true;
+                } else {
+                    curFig->pen = curFig->getOldPen();
+                    update();
+                }
+                break;
+                }
+            }
+        }
+    }
+}
+
+
+void RenderArea::mousePressEvent(QMouseEvent *event) {
+    QPointF position = event->position();
+    auto flag = false;
+
+    for(auto fig = Figs.begin(); fig != Figs.end(); fig++) {
+        if (flag) break;
+        switch (fig->get()->getShape()) {
+
+            case Figures::Trig :
+            {
+                Trig* curFig = (Trig*)fig->get();
+
+                if (curFig->inTheFigure(position)) {
+                    figureStatus = QString::fromStdString(curFig->getStatus());
+                    update();
+                    flag=true;
+                }
+                break;
+            }
+
+            case Figures::Square:
+            {
+                Square* curFig = (Square*)fig->get();
+
+                if (curFig->inTheFigure(position)) {
+                    figureStatus = QString::fromStdString(curFig->getStatus());
+                    update();
+                    flag=true;
+                }
+                break;
+            }
+
+            case Figures::Circle:
+            {
+            Circle* curFig = (Circle*)fig->get();
+
+            if (curFig->inTheFigure(position)) {
+                figureStatus = QString::fromStdString(curFig->getStatus());
+                update();
+                flag=true;
+            }
+            break;
+            }
+        }
+    }
+}

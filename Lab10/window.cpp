@@ -10,6 +10,7 @@ const int IdRole = Qt::UserRole;
 
 Window::Window()
 {
+    setMouseTracking(true);
     renderArea = new RenderArea;
 
 
@@ -251,6 +252,8 @@ Window::Window()
     antialiasingCheckBox->setChecked(true);
 
     setWindowTitle(tr("Построй свою фигуру!"));
+
+    setMaximumSize(500,500);
 }
 
 
@@ -264,7 +267,8 @@ void Window::penChanged()
     Qt::PenJoinStyle join = Qt::PenJoinStyle(penJoinComboBox->itemData(
             penJoinComboBox->currentIndex(), IdRole).toInt());
 
-    renderArea->setPen(QPen(Qt::blue, width, style, cap, join));
+    //renderArea->setPen(QPen(Qt::blue, width, style, cap, join));
+    curPen = QPen(Qt::blue, width, style, cap, join);
 }
 
 
@@ -311,9 +315,9 @@ void Window::plotRectFun() {
     auto wid = weights->value();
     auto hei = heights->value();
 
-    auto* rectangl = new Square(point, wid, hei);
+    auto rectangl = std::make_unique<Square>(point, wid, hei, curPen);
 
-    renderArea->addFigure(rectangl);
+    renderArea->addFigure(std::move(rectangl));
     renderArea->update();
 }
 
@@ -321,9 +325,9 @@ void Window::plotCircleFun() {
     QPointF point = QPointF(circleCenterX->value(),circleCenterY->value());
     auto radius = circleRadius->value();
 
-    auto* circle = new Circle(point, radius);
+    auto circle = std::make_unique<Circle>(point, radius,curPen);
 
-    renderArea->addFigure(circle);
+    renderArea->addFigure(std::move(circle));
     renderArea->update();
 }
 
@@ -332,8 +336,8 @@ void Window::plotTrigFun() {
     QPointF point2 = QPointF(leftPointX->value(),leftPointY->value());
     QPointF point3 = QPointF(rightPointX->value(),rightPointY->value());
 
-    auto* rectangl = new Trig(point1, point2, point3);
+    auto trig = std::make_unique<Trig>(point1, point2, point3, curPen);
 
-    renderArea->addFigure(rectangl);
+    renderArea->addFigure(std::move(trig));
     renderArea->update();
 }

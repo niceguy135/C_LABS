@@ -48,119 +48,16 @@
 **
 ****************************************************************************/
 
-#include "renderarea.h"
+#include "window.h"
 
-#include <QPainter>
-#include <QPainterPath>
+#include <QApplication>
 
-
-RenderArea::RenderArea(QWidget *parent)
-    : QWidget(parent)
+int main(int argc, char *argv[])
 {
-    antialiased = false;
-    transformed = false;
-    pixmap.load(":/images/qt-logo.png");
+    Q_INIT_RESOURCE(basicdrawing);
 
-    setBackgroundRole(QPalette::Base);
-    setAutoFillBackground(true);
+    QApplication app(argc, argv);
+    Window window;
+    window.show();
+    return app.exec();
 }
-
-QSize RenderArea::minimumSizeHint() const
-{
-    return QSize(300, 300);
-}
-
-
-QSize RenderArea::sizeHint() const
-{
-    return QSize(400, 200);
-}
-
-void RenderArea::setPen(const QPen &pen)
-{
-    this->pen = pen;
-    update();
-}
-
-
-void RenderArea::setBrush(const QBrush &brush)
-{
-    this->brush = brush;
-    update();
-
-}
-
-
-void RenderArea::setAntialiased(bool antialiased)
-{
-    this->antialiased = antialiased;
-    update();
-}
-
-
-void RenderArea::setTransformed(bool transformed)
-{
-    this->transformed = transformed;
-    update();
-}
-
-
-
-void RenderArea::paintEvent(QPaintEvent * /* event */)
-{   
-    QPainterPath path;
-    path.moveTo(20, 80);
-    path.lineTo(20, 30);
-    path.cubicTo(80, 0, 50, 50, 80, 80);
-
-
-    QPainter painter(this);
-    painter.setPen(pen);
-    painter.setBrush(brush);
-    if (antialiased)
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-            painter.save();
-
-
-        for(auto fig : Figs) {
-            switch (fig->getShape()) {
-
-                case Figures::Trig :
-                {
-                    Trig* curFig = (Trig*)fig;
-                    QPointF points[3] = {
-                        curFig->upPoint,
-                        curFig->leftPoint,
-                        curFig->rightPoint,
-                    };
-                    painter.drawPolygon(points,3);
-                    break;
-                }
-
-                case Figures::Square:
-                {
-                    Square* curFig = (Square*)fig;
-                    painter.drawRect(curFig->leftUpPoint.x(),curFig->leftUpPoint.y(),curFig->wigth,curFig->height);
-                    break;
-                }
-
-                case Figures::Circle:
-                {
-                    Circle* curFig = (Circle*)fig;
-                    painter.drawEllipse(curFig->circlePoint,curFig->radius,curFig->radius);
-                    break;
-                }
-            }
-
-            painter.restore();
-        }
-
-
-
-    painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setPen(palette().dark().color());
-    painter.setBrush(Qt::NoBrush);
-    painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
-}
-

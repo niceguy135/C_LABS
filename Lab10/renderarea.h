@@ -48,119 +48,67 @@
 **
 ****************************************************************************/
 
-#include "renderarea.h"
+#ifndef RENDERAREA_H
+#define RENDERAREA_H
 
-#include <QPainter>
-#include <QPainterPath>
+#include <QBrush>
+#include <QPen>
+#include <QPixmap>
+#include <QWidget>
+#include <figures.h>
+#include <rect.h>
+#include <circle.h>
+#include <trig.h>
+#include <window.h>
+#include <memory.h>
+#include <cmath>
 
-
-RenderArea::RenderArea(QWidget *parent)
-    : QWidget(parent)
+//! [0]
+class RenderArea : public QWidget
 {
-    antialiased = false;
-    transformed = false;
-    pixmap.load(":/images/qt-logo.png");
+    Q_OBJECT
 
-    setBackgroundRole(QPalette::Base);
-    setAutoFillBackground(true);
-}
+public:
+    explicit RenderArea(QWidget *parent = nullptr);
 
-QSize RenderArea::minimumSizeHint() const
-{
-    return QSize(300, 300);
-}
+    QSize minimumSizeHint() const override;
+    QSize sizeHint() const override;
 
+    void addFigure(std::unique_ptr<Figures> fig) {
+        Figs.push_back(std::move(fig));
+    }
 
-QSize RenderArea::sizeHint() const
-{
-    return QSize(400, 200);
-}
+    void clearFigure() {
+        Figs.clear();
+        update();
+    }
 
-void RenderArea::setPen(const QPen &pen)
-{
-    this->pen = pen;
-    update();
-}
+public slots:
+    void setPen(const QPen &pen);
+    void setBrush(const QBrush &brush);
+    void setAntialiased(bool antialiased);
+    void setTransformed(bool transformed);
 
+    void mouseMoveEvent(QMouseEvent* event) override;
 
-void RenderArea::setBrush(const QBrush &brush)
-{
-    this->brush = brush;
-    update();
-
-}
+    void mousePressEvent(QMouseEvent *event) override;
 
 
-void RenderArea::setAntialiased(bool antialiased)
-{
-    this->antialiased = antialiased;
-    update();
-}
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
+private:
+    QPen pen;
+    QBrush brush;
+    bool antialiased;
+    bool transformed;
+    QPixmap pixmap;
+
+    std::list<std::unique_ptr<Figures>> Figs;
+
+    QString figureStatus = "";
+
+};
 
 
-void RenderArea::setTransformed(bool transformed)
-{
-    this->transformed = transformed;
-    update();
-}
-
-
-
-void RenderArea::paintEvent(QPaintEvent * /* event */)
-{   
-    QPainterPath path;
-    path.moveTo(20, 80);
-    path.lineTo(20, 30);
-    path.cubicTo(80, 0, 50, 50, 80, 80);
-
-
-    QPainter painter(this);
-    painter.setPen(pen);
-    painter.setBrush(brush);
-    if (antialiased)
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-            painter.save();
-
-
-        for(auto fig : Figs) {
-            switch (fig->getShape()) {
-
-                case Figures::Trig :
-                {
-                    Trig* curFig = (Trig*)fig;
-                    QPointF points[3] = {
-                        curFig->upPoint,
-                        curFig->leftPoint,
-                        curFig->rightPoint,
-                    };
-                    painter.drawPolygon(points,3);
-                    break;
-                }
-
-                case Figures::Square:
-                {
-                    Square* curFig = (Square*)fig;
-                    painter.drawRect(curFig->leftUpPoint.x(),curFig->leftUpPoint.y(),curFig->wigth,curFig->height);
-                    break;
-                }
-
-                case Figures::Circle:
-                {
-                    Circle* curFig = (Circle*)fig;
-                    painter.drawEllipse(curFig->circlePoint,curFig->radius,curFig->radius);
-                    break;
-                }
-            }
-
-            painter.restore();
-        }
-
-
-
-    painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setPen(palette().dark().color());
-    painter.setBrush(Qt::NoBrush);
-    painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
-}
-
+#endif // RENDERAREA_H
