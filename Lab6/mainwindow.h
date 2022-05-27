@@ -28,7 +28,6 @@ public slots:
     void saveFile();
     void findFile();
     void readFunc(AbstarctReader& csv);
-    void sortEmployees(std::vector<Employee>& vector);
     void demonstrateCSV();
     void demonstrateJSON();
 

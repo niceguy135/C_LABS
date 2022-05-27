@@ -78,6 +78,7 @@ public:
 
     void clearFigure() {
         Figs.clear();
+        update();
     }
 
 public slots:

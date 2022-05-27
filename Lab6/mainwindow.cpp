@@ -90,22 +90,9 @@ void MainWindow::readFunc(AbstarctReader& file) {
     if (file) {
         Employee::class_num = 1;
         this->employes = file.readAll();
-        MainWindow::sortEmployees(this->employes);
-    } else {
+        std::sort(this->employes.begin(),this->employes.end());
         ui->textBrowser->writeGreen("Не смог открыть файл!");
     }
-}
-
-void MainWindow::sortEmployees(std::vector<Employee>& vector) {
-    for (int i = 0; i < int(vector.size()); i++) {
-        for (int j = 0; j < int(vector.size())-1; j++) {
-          if (vector[j+1] < vector[j]) {
-            auto b = vector[j]; // создали дополнительную переменную
-            vector[j] = std::move(vector[j + 1]); // меняем местами
-            vector[j + 1] = std::move(b); // значения элементов
-          }
-        }
-      }
 }
 
 void MainWindow::demonstrateCSV(){
